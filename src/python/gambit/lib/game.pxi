@@ -112,6 +112,10 @@ cdef class Game:
         def __get__(self):
             return self.game.deref().IsConstSum()
 
+    property is_perfect_recall:
+        def __get__(self):
+            return self.game.deref().IsPerfectRecall()
+
     def _get_contingency(self, *args):
         cdef c_PureStrategyProfile *psp
         cdef Outcome outcome
