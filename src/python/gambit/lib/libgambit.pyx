@@ -271,6 +271,7 @@ cdef extern from "libgambit/stratspt.h":
         c_Game GetGame()
         c_ArrayInt NumStrategies()        
         int MixedProfileLength()
+        int NumStrategiesPlayer "NumStrategies"(int) except +IndexError
         bool IsSubsetOf(c_StrategySupport)
         bool RemoveStrategy(c_GameStrategy)
         c_GameStrategy GetStrategy(int, int) except +IndexError
@@ -324,6 +325,7 @@ include "strategy.pxi"
 include "player.pxi"
 include "outcome.pxi"
 include "node.pxi"
+include "basegame.pxi"
 include "stratspt.pxi"
 include "mixed.pxi"
 include "behav.pxi"

@@ -22,12 +22,15 @@ cdef class Outcomes(Collection):
 cdef class Players(Collection):
     "Represents a collection of players in a game."
     cdef c_Game game
+    cdef StrategySupport support
     def __len__(self):       return self.game.deref().NumPlayers()
     def __getitem__(self, pl):
         if not isinstance(pl, int):  return Collection.__getitem__(self, pl)
         cdef Player p
         p = Player()
         p.player = self.game.deref().GetPlayer(pl+1)
+        if self.support is not None:
+            p.support = self.support
         return p
 
     def add(self, label=""):
@@ -42,6 +45,7 @@ cdef class Players(Collection):
             cdef Player p
             p = Player()
             p.player = self.game.deref().GetChance()
+            p.support = self.support
             return p
 
 cdef class GameActions(Collection):

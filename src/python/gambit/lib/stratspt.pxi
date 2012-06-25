@@ -2,31 +2,33 @@ from cython.operator cimport dereference as deref
 
 cdef class SupportStrategies(Collection):
     "Represents a collection of strategies in a support."
-    cdef c_StrategySupport support
+    cdef StrategySupport support
     def __len__(self):    return self.support.MixedProfileLength()
     def __getitem__(self, strat):
         if not isinstance(strat, int):
             return Collection.__getitem__(self, strat)
         cdef c_ArrayInt num_strategies
         cdef Strategy s
-        num_strategies = self.support.NumStrategies()
+        num_strategies = self.support.support.NumStrategies()
         for i in range(1,num_strategies.Length()+1):
             if strat - num_strategies.getitem(i) < 0:
                 s = Strategy()
-                s.strategy = self.support.GetStrategy(i, strat+1)                
+                s.strategy = self.support.support.GetStrategy(i, strat+1)  
+                s.support = self.support
                 return s
             strat = strat - num_strategies.getitem(i)
         raise IndexError("Index out of range")
 
-cdef class StrategySupport:
+cdef class StrategySupport(BaseGame):
     cdef c_StrategySupport support
 
     def __repr__(self):
-        return "<Support from Game '%s'>" % self.game.title
+        return "<Support from Game '%s'>" % self.title
 
     # def __dealloc__(self):
     #     del_StrategySupport(self.support)
 
+    # TODO teste
     def __richcmp__(StrategySupport self, other, whichop):
         if isinstance(other, StrategySupport):
             if whichop == 2:
@@ -46,28 +48,38 @@ cdef class StrategySupport:
                 raise NotImplementedError
 
     def __hash__(self):
-        return long(<long>self.game.deref())
+        return long(<long>self.unrestrict().deref())
 
-    property game:
+    property title:
         def __get__(self):
-            cdef Game g
-            g = Game()
-            g.game = self.support.GetGame()
-            return g
+            return "Support from Game '%s'" % self.unrestrict().title #self.game.title
 
     property players:
         def __get__(self):
             cdef Players p
             p = Players()
-            p.game = (<Game>self.game).game
+            p.game = (<Game>self.unrestrict()).game
+            p.support = self
             return p
 
     property strategies:
         def __get__(self):
             cdef SupportStrategies s
             s = SupportStrategies()
-            s.support = self.support
+            s.support = self
             return s
+
+    property outcomes:
+        def __get__(self):
+            return self.unrestrict().outcomes
+
+    property is_const_sum:
+        def __get__(self):
+            return self.unrestrict().is_const_sum
+
+    property is_perfect_recall:
+        def __get__(self):
+            return self.unrestrict().is_perfect_recall
 
     def delete(self, strat):
         cdef StrategySupport new_support
@@ -89,3 +101,12 @@ cdef class StrategySupport:
             #return self.support.IsSubsetOf(deref((<StrategySupport>spt).support))
             return self.support.IsSubsetOf((<StrategySupport>spt).support)
         raise TypeError("is_subset_of requires a StrategySupport object")
+
+    def num_strategies_player(self, pl):
+        return self.support.NumStrategiesPlayer(pl+1)
+
+    def unrestrict(self):
+            cdef Game g
+            g = Game()
+            g.game = self.support.GetGame()
+            return g

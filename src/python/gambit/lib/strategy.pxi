@@ -1,5 +1,6 @@
 cdef class Strategy:
     cdef c_GameStrategy strategy
+    cdef StrategySupport support
 
     def __repr__(self):
         return "<Strategy [%d] '%s' for player '%s' in game '%s'>" % \
@@ -10,9 +11,11 @@ cdef class Strategy:
     def __richcmp__(Strategy self, other, whichop):
         if isinstance(other, Strategy):
             if whichop == 2:
-                return self.strategy.deref() == ((<Strategy>other).strategy).deref()
+                return self.strategy.deref() == ((<Strategy>other).strategy).deref() and \
+                       self.support == (<Strategy>other).support
             elif whichop == 3:
-                return self.strategy.deref() != ((<Strategy>other).strategy).deref()
+                return self.strategy.deref() != ((<Strategy>other).strategy).deref() or \
+                self.support != (<Strategy>other).support
             else:
                 raise NotImplementedError
         else:
@@ -39,5 +42,10 @@ cdef class Strategy:
     property player:
         def __get__(self):
             p = Player()
+            p.support = self.support
             p.player = self.strategy.deref().GetPlayer()
             return p
+
+    property number:
+        def __get__(self):
+            return self.strategy.deref().GetNumber() - 1 

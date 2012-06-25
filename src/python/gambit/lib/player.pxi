@@ -1,3 +1,5 @@
+from gambit.lib.error import UndefinedOperationError
+
 cdef class Infosets(Collection):
     "Represents a collection of infosets for a player."
     cdef c_GamePlayer player
@@ -32,24 +34,62 @@ cdef class Strategies(Collection):
         s = Strategy()
         s.strategy = self.player.deref().GetStrategy(st+1)
         return s
+
+cdef class PlayerSupportStrategies(Collection):
+    "Represents a collection of strategies for a player in a support"
+    cdef Player player
+    cdef StrategySupport support
+
+    def add(self, label=""):
+        raise UndefinedOperationError("Adding strategies is only applicable"\
+                                      "to players in a game, not in a support")
+
+    def __init__(self, Player player not None, StrategySupport support not None):
+        self.support = support
+        self.player = player
     
+    def __len__(self):
+        return self.support.num_strategies_player(self.player.number)
+    def __getitem__(self, strat):
+        if not isinstance(strat, int):
+            return Collection.__getitem__(self, strat)
+        cdef Strategy s
+        s = Strategy()
+        s.strategy = self.support.support.GetStrategy(self.player.number+1, strat+1)
+        s.support = self.support
+        return s
 
 cdef class Player:
     cdef c_GamePlayer player
+    cdef StrategySupport support
+
+    # def __cinit__(self, c_GamePlayer player, StrategySupport support=None):
+    #     #cdef Game g
+    #     #g = Game()
+    #     self.player = player
+    #     #g.game = self.player.deref().GetGame()
+    #     #self.base_game = g
+    #     #if support is not None:
+    #         #self.support = support
+
+    def __cinit__(self):
+        self.support = None
 
     def __repr__(self):
         if self.is_chance:
-            return "<Player [CHANCE] in game '%s'>" % self.player.deref().GetGame().deref().GetTitle().c_str()
+            return "<Player [CHANCE] in game '%s'>" % self.game.title
         return "<Player [%d] '%s' in game '%s'>" % (self.number,
                                                     self.label,
-                                                    self.player.deref().GetGame().deref().GetTitle().c_str())
+                                                    self.game.title)
     
     def __richcmp__(Player self, other, whichop):
         if isinstance(other, Player):
             if whichop == 2:
-                return self.player.deref() == ((<Player>other).player).deref()
+                return self.player.deref() == ((<Player>other).player).deref() and \
+                       self.support == (<Player>other).support
             elif whichop == 3:
-                return self.player.deref() != ((<Player>other).player).deref()
+                return self.player.deref() != ((<Player>other).player).deref() or \
+                       self.support != (<Player>other).support
             else:
                 raise NotImplementedError
         else:
@@ -66,8 +106,11 @@ cdef class Player:
     property game:
         def __get__(self):
             cdef Game g
+            #cdef StrategySupport s
+            if self.support is not None:
+                return self.support
             g = Game()
-            g.game = self.player.deref().GetGame()
+            g.game = self.player.deref().GetGame() 
             return g
 
     property label:
@@ -84,7 +127,7 @@ cdef class Player:
 
     property number:
         def __get__(self):
-            return self.player.deref().GetNumber() - 1;
+            return self.player.deref().GetNumber() - 1
 
     property is_chance:
         def __get__(self):
@@ -93,6 +136,10 @@ cdef class Player:
     property strategies:
         def __get__(self):
             cdef Strategies s
+            cdef PlayerSupportStrategies ps
+            if self.support is not None:
+                ps = PlayerSupportStrategies(self, self.support)
+                return ps
             s = Strategies()
             s.player = self.player
             return s
@@ -121,3 +168,9 @@ cdef class Player:
             g.game = self.player.deref().GetGame()
             s = rat_str(g.game.deref().GetMaxPayoff(self.number + 1))
             return fractions.Fraction(s.c_str())
+
+    def unrestrict(self):
+        cdef Game g
+        g = Game()
+        g.game = self.player.deref().GetGame()
+        return g.players[self.number]
