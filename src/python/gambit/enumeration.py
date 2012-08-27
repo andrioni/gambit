@@ -7,7 +7,7 @@ class SupportEnumeration(object):
         return self.admissible_supports(game.support_profile(), list(game.strategies))
 
     def admissible_supports(self, profile, str_rest):
-        # Passo 1: closure
+        # Step 1: closure
         while True:
             temp_profile = profile.undominated(True, True)
             if temp_profile == profile:
