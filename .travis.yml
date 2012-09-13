@@ -8,7 +8,7 @@ install:
  - libtoolize
  - automake --add-missing
  - autoconf
- - pip install -q cython --use-mirrors
+ - pip install Cython>=0.15 --use-mirrors
 
 script:
  - ./configure --disable-gui && make
