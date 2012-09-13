@@ -12,6 +12,6 @@ install:
 script:
  - ./configure --disable-gui && make
  - cd src/python
- - python setup-py -q install
+ - python setup.py -q install
  - cd gambit/tests
  - nosetests
