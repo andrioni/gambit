@@ -8,8 +8,8 @@ install:
  - libtoolize
  - automake --add-missing
  - autoconf
+ - sudo python src/python/setup.py install
  - ./configure --disable-gui && make
- - python src/python/setup.py install
 
 script:
  - cd src/python/gambit/tests
