@@ -10,7 +10,7 @@ install:
  - autoconf
  - pip install -q cython --use-mirrors
 
-script
+script:
  - ./configure --disable-gui && make
  - cd src/python
  - python setup-py -q install
