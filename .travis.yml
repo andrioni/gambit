@@ -8,10 +8,9 @@ install:
  - libtoolize
  - automake --add-missing
  - autoconf
+ - ./configure --disable-gui && make
+ - python src/python/setup.py install
 
 script:
- - ./configure --disable-gui && make
- - cd src/python
- - python setup.py -q install
- - cd gambit/tests
+ - cd src/python/gambit/tests
  - nosetests
