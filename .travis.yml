@@ -2,5 +2,9 @@ language: cpp
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq automake autoconf libtool
+ - aclocal
+ - libtoolize
+ - automake --add-missing
+ - autoconf
 
 script: ./configure --disable-gui && make
