@@ -1,14 +1,13 @@
 language: cpp
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -qq automake autoconf libtool
+ - sudo apt-get install -qq automake autoconf libtool cython
 
 install: 
  - aclocal
  - libtoolize
  - automake --add-missing
  - autoconf
- - pip install Cython>=0.15 --use-mirrors
 
 script:
  - ./configure --disable-gui && make
