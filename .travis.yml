@@ -1,6 +1,4 @@
 python:
- - "2.5"
- - "2.6"
  - "2.7"
 
 compiler:
@@ -17,7 +15,7 @@ install:
  - automake --add-missing
  - autoconf
  - cd src/python
- - sudo python setup.py install
+ - python setup.py install
  - cd ../..
  - ./configure --disable-gui && make
 
